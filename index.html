@@ -1,0 +1,256 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta property="og:title" content="快点NOAA卫星图像解码-欢哥科技" />
+    <meta property="og:description" content="快点卫星图像解码是一个基于浏览器的NOAA卫星图像解码器。" />
+    <meta property="og:image" content="favion.ico" />
+
+    <script src="wav.js"></script>
+    <script src="dsp.js"></script>
+    <script src="fft.js"></script>
+
+    <script src="fileSaver.js"></script>
+    <script src="opencv.js"></script>
+    <script src="https://ajax.loli.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.loli.net/css2?family=Roboto:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
+
+
+    <link href="reset.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+
+    <title>快点NOAA卫星图像解码-欢哥科技</title>
+
+</head>
+
+<body>
+
+    <div class="error_outer">
+
+        <div class="error_inner">
+
+            <div class="text">
+
+            </div>
+
+            <button type="button" name="button" onclick="$('.error_outer').fadeOut()">Okay</button>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="container">
+
+        <div class="navbar">
+            <h1>快点NOAA卫星图像解码</h1>
+            <ul class="nav-items">
+                <li><a href="https://publiclab.org/notes/sashae/05-03-2022/an-accessible-browser-based-decoder-for-noaa-images" target="_blank">文档</a></li>
+                <!-- <li><a href="https://open-weather.community" target="_blank">open-weather</a></li> -->
+                <li><a onclick="popup('我们不会存储您的个人数据，包括您的位置或您上传的任何文件')" href="javascript:void(0);">隐私政策</a></li>
+                <li><a class="rainbow-button" style="text-decoration:none;" onclick="colorChange()" href="javascript:void(0);">🌈</a></li>
+            </ul>
+        </div>
+
+
+        <div class="flex">
+
+            <div class="f_note">
+                快点NOAA卫星图像解码是一个基于浏览器的NOAA卫星图像解码器
+            </div>
+
+            <div class="f_note mobile_only">
+                本项目的开发是为了跨操作系统使用以及提高对NOAA卫星信号解码的可访问性。
+            </div>
+
+            <div class="f_note mobile_only">
+                本项目基于 Thatcher’s <a href="https://jthatch.com/APT3000/APT3000.html" target="_blank">APT 3000</a>.
+            </div>
+
+            <div class="f_content">
+
+                <h2>使用方法</h2>
+                <div class="indent">
+
+                    <p>1. 选择一个 WAV 文件从你的设备 (<a href="https://huangenet.lanzoub.com/ij61f17lmnrc" target="_blank">举个栗子</a>)</p>
+
+                    <input class="browse" type="file" id="fileInput" value="打开 WAV 文件" autocomplete="off">
+                    <em><input type="text" class="form-control" id="fileName" style="opacity:0;" readonly autocomplete="off"></em>
+
+                </div>
+
+            </div>
+
+        </div>
+        <div class="flex">
+
+            <div class="f_note desktop_only">
+                本项目的开发是为了跨操作系统使用以及提高对NOAA卫星信号解码的可访问性。
+            </div>
+
+            <div class="f_content">
+
+                <div class="indent">
+
+
+                    <p>2. 选择解调方法</p>
+
+                    <div>
+                        <input type="radio" class="radio-button" id="abs" name="demod_mode" value="abs" checked>
+                        <label for="abs">绝对值</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" class="radio-button" id="cos" name="demod_mode" value="cos">
+                        <label for="cos">余弦函数</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" class="radio-button" id="hilbertfft" name="demod_mode" value="hilbertfft">
+                        <label for="hilbertfft">希尔伯特变换</label>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="flex">
+
+            <div class="f_note desktop_only">
+                本项目基于 Thatcher’s <a href="https://jthatch.com/APT3000/APT3000.html" target="_blank">APT 3000</a>.   </div>
+
+            <div class="f_content">
+
+
+                <div class="indent">
+
+                    <p>3. 解码图像!</p>
+
+                    <button onclick="start()">解码</button>
+                </div>
+
+                <div class="spinner-loader indent" id="spinner" style="visibility:hidden;">
+                    🛰️
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <div class="divider">
+        </div>
+
+        <div class="flex">
+
+
+
+            <div class="f1">
+
+                <div class="view_buttons_label">选择频道</div>
+
+                <input class="view_buttons button" id="viewAB" value="AB" type="button" onclick="viewAB()">
+                <input class="view_buttons button" id="viewA" value="A" type="button" onclick="viewA()">
+                <input class="view_buttons button" id="viewB" value="B" type="button" onclick="viewB()">
+
+                <div class="view_buttons"> <br>搜索音频前 <input id="sync_after" type="number" value="2" autocomplete=off maxlength="6" size="6"> 秒内的第一个同步。</div>
+
+                <div class="view_buttons"> <br>开启直方图均衡 <button class="image_buttons selected" id="remove_equalize_button" onclick="removeEqualization()">OFF</button><button class="image_buttons" id="equalize_button" onclick="histogramEqualization()">ON</button><button class="image_buttons" id="download_output" onclick="">下载图片</button> </div>
+
+
+
+                <div class="col-md-3">
+                    <div class="alert-small alert-danger" role="alert" id="alert"></div>
+                </div>
+            </div>
+
+        </div>
+        <div class="flex">
+
+            <!-- MAIN CANVAS -->
+            <div class="f1 output_container">
+                <canvas id="output"></canvas>
+            </div>
+
+        </div>
+
+        <div class="flex" style="margin-top:-1rem;">
+
+            <div class="f1">
+
+                <!-- <button class="image_buttons" id="equalize_button" onclick="histogramEqualization()">Apply histogram equalisation</button>
+                <button class="image_buttons" id="remove_equalize_button" onclick="removeEqualization()" style="" disabled>Remove histogram equalisation</button>
+                <button class="image_buttons" id="download_output" onclick="">Download image</button> -->
+
+
+                <script>
+                    var download_output = document.getElementById('download_output');
+
+                    download_output.onclick = function(e) {
+
+                        var output_canvas = document.getElementById("output");
+
+                        // maybe give it a better save as date string
+                        // var dateString = new Date();
+                        // var time = today.getMonth()+1 + "-" + today.getHours() + "-" + today.getMinutes() + "-" + today.getSeconds();
+
+                        // draw to canvas...
+                        output_canvas.toBlob(function(blob) {
+                            saveAs(blob, "apt.png");
+                        });
+                    };
+                </script>
+
+            </div>
+        </div>
+
+        <div class="flex">
+
+
+            <!-- HISTOGRAM EQUALIZED CANVAS -->
+            <div class="f1">
+                <canvas id="equalized"></canvas>
+            </div>
+
+        </div>
+
+        <div class="flex">
+            <div class="f1">
+                <button class="histo_buttons" id="download_equalized" onclick="">保存均衡图像</button>
+
+                <script>
+                    var equalized_canvas = document.getElementById("equalized");
+                    var download_equalized = document.getElementById('download_equalized');
+                    download_equalized.onclick = function(e) {
+                        // draw to canvas...
+                        equalized_canvas.toBlob(function(blob) {
+                            saveAs(blob, "apt.png");
+                        });
+                    };
+                </script>
+
+            </div>
+
+            <!-- <div class="f1">
+
+                <canvas id="myChart" style="width:100%;" width="1040" height="400"></canvas>
+
+            </div> -->
+        </div>
+    </div>
+
+
+    <script src='openweatherapt.js'></script>
+
+
+</body>
+
+</html>
