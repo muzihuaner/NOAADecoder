@@ -21,7 +21,7 @@ window.onload = function() {
 	try {
 		FileReader = FileReader;
 	} catch (e) {
-		console.log('Your browser does not support the File API');
+		console.log('你的浏览器不支持文件 API');
 	}
 
 
@@ -42,7 +42,7 @@ function start() {
 
 	} catch (error) {
 
-		popup("Please select a WAV file on your device");
+		popup("请选择一个 WAV 文件从你的设备");
 
 		return;
 
@@ -58,7 +58,7 @@ function start() {
 
 		if (wavFile.sampleRate != 11025) {
 
-			document.getElementById('alert').innerHTML = "File must have a 11025Hz sample rate, please look at <a href='https://leshamilton.co.uk/ssguide.htm'>this guide</a> for a more detailed explanation.";
+			document.getElementById('alert').innerHTML = "文件必须使用 11025Hz 采样率，请参阅<a href='https://leshamilton.co.uk/ssguide.htm'>本指南</a>以获取更详细的说明.";
 			document.getElementById('alert').style.visibility = 'visible';
 			document.getElementById('spinner').style.visibility = 'hidden';
 
